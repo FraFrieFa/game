@@ -2,15 +2,19 @@ import pygame
 import sys
 import random
 import enum
+import os
 
-
-width = 10
-height = 10
-cell_size = 50
+width = 90
+height = 90
+cell_size = 10
 
 already_been = []
 path = []
-current_pos = (0, 0)
+
+start_pos = (0, 0)
+max_pos = (-1, -1)
+
+current_pos = (start_pos[0], start_pos[1])
 
 
 def get_possible_dir(x_, y_):
@@ -40,25 +44,31 @@ def step_back():
     path.pop()
     current_pos = path[len(path)-1]
 
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,0)
 pygame.init()
 screen = pygame.display.set_mode([width*cell_size, height*cell_size])
 
+current_length = 0
+max_length = 0
 
 already_been.append(current_pos)
 path.append(current_pos)
 
-pygame.draw.rect(screen, (0, 0, 255), (current_pos[0] * cell_size, current_pos[1] * cell_size, cell_size, cell_size))
+pygame.draw.rect(screen, (255, 0, 0), (current_pos[0] * cell_size + 1, current_pos[1] * cell_size + 1, cell_size - 2, cell_size - 2))
 pygame.display.update()
 
 
 while 1:
+
     next_possibles = get_possible_dir(current_pos[0], current_pos[1])
 
     if len(next_possibles) == 0:
         step_back()
+        current_length-=1
     else:
         index__ = random.randint(0, len(next_possibles)-1)
         next_choice = next_possibles[index__]
+
 
         point_before = current_pos
         current_pos = next_choice
@@ -67,24 +77,34 @@ while 1:
         path.append(current_pos)
 
         if point_before[0] != current_pos[0]:
-            pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size, current_pos[1] * cell_size - 2, cell_size, 4))
-            pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size, current_pos[1] * cell_size - 2 +cell_size, cell_size, 4))
+            pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size, current_pos[1] * cell_size - 1, cell_size, 2))
+            pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size, current_pos[1] * cell_size - 1 +cell_size, cell_size, 2))
 
             if point_before[0] < current_pos[0]:
-                pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size - 2 + cell_size, current_pos[1] * cell_size, 4, cell_size))
+                pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size - 1 + cell_size, current_pos[1] * cell_size, 2, cell_size))
             else:
-                pygame.draw.rect(screen, (0, 0, 0),(current_pos[0] * cell_size - 2, current_pos[1] * cell_size, 4, cell_size))
+                pygame.draw.rect(screen, (0, 0, 0),(current_pos[0] * cell_size -1, current_pos[1] * cell_size, 2, cell_size))
 
         else:
-            pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size-2, current_pos[1] * cell_size, 4, cell_size))
-            pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size-2 + cell_size, current_pos[1] * cell_size, 4, cell_size))
+            pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size-1, current_pos[1] * cell_size, 2, cell_size))
+            pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size-1 + cell_size, current_pos[1] * cell_size, 2, cell_size))
 
             if point_before[1] < current_pos[1]:
-                pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size, current_pos[1] * cell_size - 2 + cell_size, cell_size, 4))
+                pygame.draw.rect(screen, (0, 0, 0), (current_pos[0] * cell_size, current_pos[1] * cell_size - 1 + cell_size, cell_size, 2))
             else:
-                pygame.draw.rect(screen, (0, 0, 0),(current_pos[0] * cell_size, current_pos[1] * cell_size - 2, cell_size, 4))
-
+                pygame.draw.rect(screen, (0, 0, 0),(current_pos[0] * cell_size, current_pos[1] * cell_size - 1, cell_size, 1))
 
         pygame.draw.rect(screen, (0, 0, 255), (current_pos[0] * cell_size, current_pos[1] * cell_size, cell_size, cell_size))
         pygame.display.update()
-        pygame.time.wait(100)
+        current_length+=1
+
+        if current_length > max_length:
+            pygame.draw.rect(screen, (0, 0, 255),
+                             (max_pos[0] * cell_size + 1, max_pos[1] * cell_size + 1, cell_size - 2,
+                              cell_size - 2))
+
+            max_length = current_length
+            max_pos = current_pos
+            pygame.draw.rect(screen, (0, 255, 0), (max_pos[0] * cell_size + 1, max_pos[1] * cell_size + 1, cell_size - 2, cell_size - 2))
+
+        pygame.time.wait(1)
